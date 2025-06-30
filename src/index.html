@@ -1,32 +1,528 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>蜜雪の每日作战面板 </title>
+    <style>
+        /* CSS 样式 - 用于美化界面和移动端适配 */
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #f0f0f0;
+            --border-color: #ddd;
+            --text-color: #333;
+            --bg-color: #fff;
+            --success-color: #28a745;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            padding: 15px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: var(--bg-color);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            font-size: 1.5em;
+        }
+        .input-group {
+            margin-bottom: 18px;
+        }
+        .input-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #555;
+        }
+        .input-group input[type="number"],
+        .input-group input[type="text"],
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+        .weather-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .weather-options input[type="radio"] {
+            display: none;
+        }
+        .weather-options label {
+            flex-grow: 1;
+            text-align: center;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .weather-options input[type="radio"]:checked + label {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .batch-paste textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        .readonly-field {
+            background-color: #e9ecef;
+            font-weight: bold;
+        }
+        .summary-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .summary-group input {
+            flex-grow: 1;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+        .output-section {
+            margin-top: 30px;
+            border-top: 2px solid var(--secondary-color);
+            padding-top: 20px;
+        }
+        #resultTemplate {
+            width: 100%;
+            height: 300px;
+            font-family: monospace;
+            white-space: pre;
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+        #copyButton {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+        #copyButton:hover {
+            background-color: #218838;
+        }
+        .inline-label {
+            font-weight: normal; 
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-            <form class="row" id="greet-form">
-                <input id="inputValue" placeholder="Enter a something..." />
-            </form>
-            <div class="resultBox">
-                <span>result: </span>
-                <span id="result"></span>
-            </div>
-            <div class="invokeBox">
-                <button id="openUrl">open_url_browser</button>
-                <button id="openUrlNew">open_url_new</button>
-                <button id="runCommand">run_command</button>
-                <button id="downloadFile">download_file</button>
-                <button id="getExeDir">get_exe_dir</button>
-                <button id="getEnvVar">get_env_var</button>
-                <button id="findPort">find_port</button>
-            </div>
-        </main>
-    </body>
+<div class="container">
+    <h1>营业の日志</h1>
+
+    <!-- 日期 (自动) -->
+    <div class="input-group">
+        <label for="dateDisplay">日期</label>
+        <input type="text" id="dateDisplay" readonly class="readonly-field">
+    </div>
+
+    <!-- 天气 -->
+    <div class="input-group">
+        <label>今天的天气是？</label>
+        <div class="weather-options">
+            <input type="radio" id="weather_sunny" name="weather_choice" value="晴" checked>
+            <label for="weather_sunny">☀️ 晴</label>
+            <input type="radio" id="weather_rainy" name="weather_choice" value="雨">
+            <label for="weather_rainy">🌧️ 雨</label>
+            <input type="radio" id="weather_cloudy" name="weather_choice" value="阴">
+            <label for="weather_cloudy">☁️ 阴</label>
+        </div>
+        <input type="text" id="weather_manual" placeholder="也可以在这里手动填写天气喵">
+    </div>
+
+    <!-- 批量粘贴 -->
+    <div class="input-group batch-paste">
+        <label for="batchPaste">粘贴区域 (数据要核对清楚哦)</label>
+        <textarea id="batchPaste" placeholder="格式示例：&#10;美团：621.53&#10;饿：306.56&#10;京：78.1&#10;扫：946.04&#10;现：104.90"></textarea>
+    </div>
+
+    <!-- 各项收入 -->
+    <div class="input-group">
+        <label for="jd">京东</label>
+        <input type="number" id="jd" placeholder="0.00" step="0.01">
+    </div>
+    <div class="input-group">
+        <label for="meituan">美团</label>
+        <input type="number" id="meituan" placeholder="0.00" step="0.01">
+    </div>
+    <div class="input-group">
+        <label for="eleme">饿了么</label>
+        <input type="number" id="eleme" placeholder="0.00" step="0.01">
+    </div>
+    <div class="input-group">
+        <label for="mobilePay">移动支付</label>
+        <input type="number" id="mobilePay" placeholder="0.00" step="0.01">
+    </div>
+    <div class="input-group">
+        <label for="cash">现金</label>
+        <input type="number" id="cash" placeholder="0.00" step="0.01">
+    </div>
+
+    <!-- 自动计算部分 -->
+    <div class="input-group">
+        <label for="turnover">当日营业额</label>
+        <input type="number" id="turnover" readonly class="readonly-field">
+    </div>
+
+    <!-- 新增部分 START -->
+    <div class="input-group">
+        <label for="lastMonthlyTotalInput">上次汇总 汇总计算错误就改这里喵</label>
+        <input type="number" id="lastMonthlyTotalInput" placeholder="0.00" step="0.01">
+    </div>
+    <!-- 新增部分 END -->
+
+    <div class="input-group">
+        <label for="monthlyTotal">本月汇总</label>
+        <div class="summary-group">
+            <input type="number" id="monthlyTotal" placeholder="0.00" step="0.01">
+            <label class="toggle-switch">
+                <input type="checkbox" id="autoCalcToggle" checked>
+                <span class="slider"></span>
+            </label>
+            <span class="inline-label">自动</span>
+        </div>
+    </div>
+    
+    <div class="input-group">
+        <label for="monthlyTarget">月目标</label>
+        <input type="number" id="monthlyTarget" placeholder="例如: 70000" step="100">
+    </div>
+
+    <div class="input-group">
+        <label for="completionRate">完成率</label>
+        <input type="text" id="completionRate" readonly class="readonly-field">
+    </div>
+    
+    <!-- 评分 -->
+    <div class="input-group">
+        <label for="meituanRating">美团评分</label>
+        <input type="number" id="meituanRating" step="0.1" placeholder="例如: 4.9">
+    </div>
+    <div class="input-group">
+        <label for="elemeRating">饿了么评分</label>
+        <input type="number" id="elemeRating" step="0.1" placeholder="例如: 4.8">
+    </div>
+
+    <!-- 输出结果 -->
+    <div class="output-section">
+        <h2>生成结果</h2>
+        <textarea id="resultTemplate" readonly></textarea>
+        <button id="copyButton">点我复制到剪贴板喵</button>
+    </div>
+
+</div>
+
+<script>
+// JavaScript 逻辑 - 实现所有动态功能
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. 获取所有DOM元素
+    const elements = {
+        dateDisplay: document.getElementById('dateDisplay'),
+        weatherRadios: document.querySelectorAll('input[name="weather_choice"]'),
+        weatherManual: document.getElementById('weather_manual'),
+        batchPaste: document.getElementById('batchPaste'),
+        jd: document.getElementById('jd'),
+        meituan: document.getElementById('meituan'),
+        eleme: document.getElementById('eleme'),
+        mobilePay: document.getElementById('mobilePay'),
+        cash: document.getElementById('cash'),
+        turnover: document.getElementById('turnover'),
+        //- 修改点：新增 lastMonthlyTotalInput 元素
+        lastMonthlyTotalInput: document.getElementById('lastMonthlyTotalInput'),
+        monthlyTotal: document.getElementById('monthlyTotal'),
+        autoCalcToggle: document.getElementById('autoCalcToggle'),
+        monthlyTarget: document.getElementById('monthlyTarget'),
+        completionRate: document.getElementById('completionRate'),
+        meituanRating: document.getElementById('meituanRating'),
+        elemeRating: document.getElementById('elemeRating'),
+        resultTemplate: document.getElementById('resultTemplate'),
+        copyButton: document.getElementById('copyButton'),
+    };
+
+    // 2. 本地存储的键
+    const STORAGE_KEYS = {
+        //- 修改点：这个键现在是为 “上次汇总” 输入框服务的
+        LAST_MONTHLY_TOTAL: 'dailyReport_lastMonthlyTotal',
+        MONTHLY_TARGET: 'dailyReport_monthlyTarget',
+        MEITUAN_RATING: 'dailyReport_meituanRating',
+        ELEME_RATING: 'dailyReport_elemeRating',
+    };
+    
+    //- 修改点：这个变量不再需要在全局作用域中，它的值将直接从输入框读取
+    // let lastMonthlyTotal = 0; 
+
+    // 3. 初始化页面
+    function initialize() {
+        // 设置自动日期
+        const today = new Date();
+        elements.dateDisplay.value = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
+
+        // 从localStorage加载数据
+        loadDataFromStorage();
+
+        // 绑定所有事件监听器
+        setupEventListeners();
+
+        // 初始计算和更新
+        updateAll();
+    }
+
+    // 4. 从本地存储加载数据
+    function loadDataFromStorage() {
+        //- 修改点：加载上次汇总值并直接填充到新的输入框中
+        const lastMonthlyTotal = parseFloat(localStorage.getItem(STORAGE_KEYS.LAST_MONTHLY_TOTAL)) || 0;
+        elements.lastMonthlyTotalInput.value = lastMonthlyTotal.toFixed(2);
+        
+        // 加载其他记忆项
+        elements.monthlyTarget.value = localStorage.getItem(STORAGE_KEYS.MONTHLY_TARGET) || '';
+        elements.meituanRating.value = localStorage.getItem(STORAGE_KEYS.MEITUAN_RATING) || '4.9';
+        elements.elemeRating.value = localStorage.getItem(STORAGE_KEYS.ELEME_RATING) || '4.8';
+        
+        // 默认开启自动计算
+        elements.autoCalcToggle.checked = true;
+    }
+    
+    // 5. 设置事件监听器
+    function setupEventListeners() {
+        //- 修改点：将 lastMonthlyTotalInput 添加到监听列表
+        const inputsToWatch = [elements.jd, elements.meituan, elements.eleme, elements.mobilePay, elements.cash, elements.monthlyTarget, elements.meituanRating, elements.elemeRating, elements.monthlyTotal, elements.weatherManual, elements.lastMonthlyTotalInput];
+        inputsToWatch.forEach(input => input.addEventListener('input', updateAll));
+
+        elements.weatherRadios.forEach(radio => radio.addEventListener('change', () => {
+             // 选择天气卡片时，清空手动输入框
+            elements.weatherManual.value = '';
+            updateAll();
+        }));
+        
+        elements.weatherManual.addEventListener('input', () => {
+            // 手动输入天气时，取消所有天气卡片的选择
+            if(elements.weatherManual.value) {
+                elements.weatherRadios.forEach(radio => radio.checked = false);
+            }
+            updateAll();
+        });
+
+        elements.autoCalcToggle.addEventListener('change', updateAll);
+        elements.batchPaste.addEventListener('input', handleBatchPaste);
+        elements.copyButton.addEventListener('click', copyToClipboard);
+    }
+
+    // 6. 处理批量粘贴
+    function handleBatchPaste() {
+        const text = elements.batchPaste.value;
+        const lines = text.split('\n');
+        const patterns = {
+            meituan: /(?:美团|mt)[:：\s]*([\d.]+)/i,
+            eleme: /(?:饿了么|饿)[:：\s]*([\d.]+)/i,
+            jd: /(?:京东|京)[:：\s]*([\d.]+)/i,
+            mobilePay: /(?:移动支付|扫码|扫)[:：\s]*([\d.]+)/i,
+            cash: /(?:现金|现)[:：\s]*([\d.]+)/i,
+        };
+
+        lines.forEach(line => {
+            for (const key in patterns) {
+                const match = line.match(patterns[key]);
+                if (match && match[1]) {
+                    elements[key].value = parseFloat(match[1]).toFixed(2);
+                }
+            }
+        });
+        updateAll();
+    }
+
+    // 7. 核心更新函数：计算所有数据并更新界面
+    function updateAll() {
+        // a. 获取所有输入值，并转为数字（处理空值）
+        const jd = parseFloat(elements.jd.value) || 0;
+        const meituan = parseFloat(elements.meituan.value) || 0;
+        const eleme = parseFloat(elements.eleme.value) || 0;
+        const mobilePay = parseFloat(elements.mobilePay.value) || 0;
+        const cash = parseFloat(elements.cash.value) || 0;
+        
+        // b. 计算当日营业额
+        const dailyTurnover = jd + meituan + eleme + mobilePay + cash;
+        elements.turnover.value = dailyTurnover.toFixed(2);
+
+        // c. 计算本月汇总
+        let currentMonthlyTotal = 0;
+        //- 修改点：获取 “上次汇总” 输入框的最新值
+        const lastTotalFromInput = parseFloat(elements.lastMonthlyTotalInput.value) || 0;
+
+        if (elements.autoCalcToggle.checked) {
+            elements.monthlyTotal.readOnly = true;
+            elements.monthlyTotal.classList.add('readonly-field');
+            //- 修改点：使用输入框的值进行计算
+            currentMonthlyTotal = lastTotalFromInput + dailyTurnover;
+            elements.monthlyTotal.value = currentMonthlyTotal.toFixed(2);
+        } else {
+            elements.monthlyTotal.readOnly = false;
+            elements.monthlyTotal.classList.remove('readonly-field');
+            currentMonthlyTotal = parseFloat(elements.monthlyTotal.value) || 0;
+        }
+
+        // d. 计算完成率
+        const monthlyTarget = parseFloat(elements.monthlyTarget.value) || 0;
+        let completionRate = 0;
+        if (monthlyTarget > 0) {
+            completionRate = (currentMonthlyTotal / monthlyTarget) * 100;
+        }
+        elements.completionRate.value = `${completionRate.toFixed(2)}%`;
+        
+        // e. 保存需要记忆的数据到localStorage
+        //- 修改点：保存的是最终计算出的 “本月汇总” 值，作为下一次的 “上次汇总”
+        localStorage.setItem(STORAGE_KEYS.LAST_MONTHLY_TOTAL, currentMonthlyTotal.toFixed(2));
+        localStorage.setItem(STORAGE_KEYS.MONTHLY_TARGET, elements.monthlyTarget.value);
+        localStorage.setItem(STORAGE_KEYS.MEITUAN_RATING, elements.meituanRating.value);
+        localStorage.setItem(STORAGE_KEYS.ELEME_RATING, elements.elemeRating.value);
+
+        // f. 生成最终的模板文本
+        generateTemplate();
+    }
+
+    // 8. 生成模板文本
+    function generateTemplate() {
+        // 获取天气
+        let weather = '';
+        if (elements.weatherManual.value) {
+            weather = elements.weatherManual.value;
+        } else {
+            const checkedRadio = document.querySelector('input[name="weather_choice"]:checked');
+            if(checkedRadio) weather = checkedRadio.value;
+        }
+
+        const data = {
+            date: elements.dateDisplay.value,
+            weather: weather,
+            turnover: (parseFloat(elements.turnover.value) || 0).toFixed(2),
+            jd: (parseFloat(elements.jd.value) || 0).toFixed(2),
+            meituan: (parseFloat(elements.meituan.value) || 0).toFixed(2),
+            eleme: (parseFloat(elements.eleme.value) || 0).toFixed(2),
+            mobilePay: (parseFloat(elements.mobilePay.value) || 0).toFixed(2),
+            cash: (parseFloat(elements.cash.value) || 0).toFixed(2),
+            monthlyTotal: (parseFloat(elements.monthlyTotal.value) || 0).toFixed(2),
+            monthlyTarget: (parseFloat(elements.monthlyTarget.value) / 10000).toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 1}) + '万', // 格式化为x.x万
+            completionRate: elements.completionRate.value,
+            meituanRating: elements.meituanRating.value,
+            elemeRating: elements.elemeRating.value,
+        };
+        
+        const template = `新世纪店${data.date}
+天气:${data.weather}
+营业额：${data.turnover}
+京东：${data.jd}
+美团：${data.meituan}
+饿了么：${data.eleme}
+移动支付：${data.mobilePay}
+现金：${data.cash}
+汇总:${data.monthlyTotal}
+月目标${data.monthlyTarget}完成:${data.completionRate}
+美团评分：${data.meituanRating}分
+饿了么评分：${data.elemeRating}分`;
+
+        elements.resultTemplate.value = template;
+    }
+
+    // 9. 复制到剪贴板功能
+    function copyToClipboard() {
+        if (!navigator.clipboard) {
+            // 兼容旧版浏览器
+            elements.resultTemplate.select();
+            document.execCommand('copy');
+            alert('已复制到剪贴板 (旧版模式)');
+            return;
+        }
+        navigator.clipboard.writeText(elements.resultTemplate.value).then(() => {
+            const originalText = elements.copyButton.textContent;
+            elements.copyButton.textContent = '✅ 已复制！';
+            elements.copyButton.style.backgroundColor = '#1e7e34';
+            setTimeout(() => {
+                elements.copyButton.textContent = originalText;
+                elements.copyButton.style.backgroundColor = 'var(--success-color)';
+            }, 1500);
+        }).catch(err => {
+            console.error('复制失败: ', err);
+            alert('复制失败，请手动复制。');
+        });
+    }
+
+    // 启动！
+    initialize();
+});
+</script>
+
+</body>
 </html>
